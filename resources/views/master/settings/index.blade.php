@@ -1,8 +1,6 @@
 <x-app-layout>
     <div x-data="{ activeTab: 'categories' }">
-        <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-medium text-[#1C1B1F]">System Settings</h1>
-        </div>
+        <x-m3.page-header title="System Settings" />
 
         <!-- M3 Tonal Tabs -->
         <div class="flex gap-2 mb-6 bg-[#F3EDF7] p-1.5 rounded-full w-fit">
@@ -27,37 +25,21 @@
                     <span>Add Category</span>
                 </button>
             </div>
-            <div class="bg-[#F3EDF7] rounded-[28px] p-6 sm:p-8 overflow-hidden">
+            <x-m3.table-card class="p-6 sm:p-8">
                 <table id="categories-table" class="display responsive nowrap w-full">
                     <thead><tr><th>Name</th><th>Prefix</th><th>Action</th></tr></thead>
                 </table>
-            </div>
+            </x-m3.table-card>
 
             <!-- Category Modal -->
-            <div x-show="isModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                <div class="fixed inset-0 bg-black/30 backdrop-blur-[2px]" @click="closeModal()"></div>
-                <div class="relative bg-[#FEF7FF] rounded-[28px] shadow-2xl w-full max-w-md p-8 z-10"
-                     x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                     x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0 scale-95">
-                    <h3 class="text-2xl font-normal text-[#1C1B1F] mb-6" x-text="modalTitle"></h3>
-                    <form @submit.prevent="submitForm" class="space-y-6">
-                        <div>
-                            <label class="block text-sm font-medium text-[#49454F] mb-2 px-1">Category Name</label>
-                            <input type="text" x-model="formData.name" placeholder="e.g. Electronics" class="block w-full border border-[#79747E] rounded-xl px-4 py-3 bg-transparent text-[#1C1B1F] focus:ring-2 focus:ring-[#6750A4] transition-all">
-                            <template x-if="errors.name"><p class="text-[#B3261E] text-xs mt-1 font-medium" x-text="errors.name[0]"></p></template>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-[#49454F] mb-2 px-1">Code Prefix</label>
-                            <input type="text" x-model="formData.prefix" placeholder="e.g. EL" class="block w-full border border-[#79747E] rounded-xl px-4 py-3 bg-transparent text-[#1C1B1F] focus:ring-2 focus:ring-[#6750A4] transition-all uppercase">
-                            <template x-if="errors.prefix"><p class="text-[#B3261E] text-xs mt-1 font-medium" x-text="errors.prefix[0]"></p></template>
-                        </div>
-                        <div class="flex justify-end gap-3 mt-8">
-                            <button type="button" @click="closeModal()" class="text-[#6750A4] font-semibold px-6 py-2.5 rounded-full hover:bg-[#ECE6F0] transition-all">Cancel</button>
-                            <button type="submit" class="bg-[#6750A4] text-white font-semibold px-8 py-2.5 rounded-full hover:bg-[#4F378B] transition-all">Save</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+            <x-m3.modal show="isModalOpen" close="closeModal()" title="modalTitle" maxWidth="md">
+                <form @submit.prevent="submitForm" class="space-y-6">
+                    <x-m3.input label="Category Name" model="formData.name" placeholder="e.g. Electronics" error="errors.name" />
+                    <x-m3.input label="Code Prefix" model="formData.prefix" placeholder="e.g. EL" error="errors.prefix" class="uppercase" />
+                    
+                    <x-m3.modal-actions cancelAction="closeModal()" />
+                </form>
+            </x-m3.modal>
         </div>
 
         <!-- Tab Content: Roles -->
@@ -69,44 +51,32 @@
                     <span>Add Role</span>
                 </button>
             </div>
-            <div class="bg-[#F3EDF7] rounded-[28px] p-6 sm:p-8 overflow-hidden">
+            
+            <x-m3.table-card class="p-6 sm:p-8">
                 <table id="roles-table" class="display responsive nowrap w-full">
                     <thead><tr><th>Role Name</th><th>Permissions</th><th>Action</th></tr></thead>
                 </table>
-            </div>
+            </x-m3.table-card>
 
             <!-- Role Modal -->
-            <div x-show="isModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                <div class="fixed inset-0 bg-black/30 backdrop-blur-[2px]" @click="closeModal()"></div>
-                <div class="relative bg-[#FEF7FF] rounded-[28px] shadow-2xl w-full max-w-md p-8 z-10"
-                     x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                     x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0 scale-95">
-                    <h3 class="text-2xl font-normal text-[#1C1B1F] mb-6" x-text="modalTitle"></h3>
-                    <form @submit.prevent="submitForm" class="space-y-6">
-                        <div>
-                            <label class="block text-sm font-medium text-[#49454F] mb-2 px-1">Role Name</label>
-                            <input type="text" x-model="formData.name" placeholder="e.g. Supervisor" class="block w-full border border-[#79747E] rounded-xl px-4 py-3 bg-transparent text-[#1C1B1F] focus:ring-2 focus:ring-[#6750A4] transition-all">
-                            <template x-if="errors.name"><p class="text-[#B3261E] text-xs mt-1 font-medium" x-text="errors.name[0]"></p></template>
+            <x-m3.modal show="isModalOpen" close="closeModal()" title="modalTitle" maxWidth="md">
+                <form @submit.prevent="submitForm" class="space-y-6">
+                    <x-m3.input label="Role Name" model="formData.name" placeholder="e.g. Supervisor" error="errors.name" />
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-[#49454F] mb-2 px-1">Permissions</label>
+                        <div wire:ignore>
+                            <select id="role-permissions" multiple class="block w-full">
+                                @foreach($permissions as $permission)
+                                <option value="{{ $permission->name }}">{{ $permission->name }}</option>
+                                @endforeach
+                            </select>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-[#49454F] mb-2 px-1">Permissions</label>
-                            <div wire:ignore>
-                                <select id="role-permissions" multiple class="block w-full">
-                                    @foreach($permissions as $permission)
-                                    <option value="{{ $permission->name }}">{{ $permission->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <template x-if="errors.permissions"><p class="text-[#B3261E] text-xs mt-1 font-medium" x-text="errors.permissions[0]"></p></template>
-                        </div>
-                        <div class="flex justify-end gap-3 mt-8">
-                            <button type="button" @click="closeModal()" class="text-[#6750A4] font-semibold px-6 py-2.5 rounded-full hover:bg-[#ECE6F0] transition-all">Cancel</button>
-                            <button type="submit" class="bg-[#6750A4] text-white font-semibold px-8 py-2.5 rounded-full hover:bg-[#4F378B] transition-all">Save</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+                        <template x-if="errors.permissions"><p class="text-[#B3261E] text-xs mt-1 font-medium" x-text="errors.permissions[0]"></p></template>
+                    </div>
+                    <x-m3.modal-actions cancelAction="closeModal()" />
+                </form>
+            </x-m3.modal>
     </div>
 
     @push('scripts')
@@ -124,6 +94,7 @@
                 init() {
                     $('#categories-table').DataTable({
                         retrieve: true, processing: true, serverSide: true, responsive: true,
+                        pageLength: 10,
                         ajax: "{{ route('api.categories.index') }}",
                         columns: [{ data: 'name', name: 'name' }, { data: 'prefix', name: 'prefix' }, { data: 'action', name: 'action', orderable: false, searchable: false }]
                     });
@@ -161,6 +132,7 @@
                 init() {
                     $('#roles-table').DataTable({
                         retrieve: true, processing: true, serverSide: true, responsive: true,
+                        pageLength: 10,
                         ajax: "{{ route('api.roles.index') }}",
                         columns: [
                             { data: 'name', name: 'name' }, 

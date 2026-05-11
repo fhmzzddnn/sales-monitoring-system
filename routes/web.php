@@ -9,15 +9,17 @@ use App\Http\Controllers\Api\CategoryController as ApiCategoryController;
 use App\Http\Controllers\Api\RoleController as ApiRoleController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Api\PermissionController as ApiPermissionController;
+use App\Http\Controllers\Web\SaleController as WebSaleController;
+use App\Http\Controllers\Api\SaleController as ApiSaleController;
+use App\Http\Controllers\Web\PaymentController as WebPaymentController;
+use App\Http\Controllers\Api\PaymentController as ApiPaymentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -31,9 +33,12 @@ Route::middleware('auth')->group(function () {
         Route::get('settings', [WebSettingController::class, 'index'])->name('settings.index')->middleware('permission:setting-manage');
     });
 
+    Route::get('penjualan', [WebSaleController::class, 'index'])->name('penjualan.index');
+    Route::get('pembayaran', [WebPaymentController::class, 'index'])->name('pembayaran.index');
+
     // API Routes (AJAX)
     Route::prefix('api')->name('api.')->group(function () {
-        // ... (User routes remain)
+        // User routes
         Route::get('users', [ApiUserController::class, 'index'])->name('users.index')->middleware('permission:user-list');
         Route::post('users', [ApiUserController::class, 'store'])->name('users.store')->middleware('permission:user-create');
         Route::get('users/{user}', [ApiUserController::class, 'show'])->name('users.show')->middleware('permission:user-list');
@@ -61,11 +66,16 @@ Route::middleware('auth')->group(function () {
         Route::put('permissions/{permission}', [ApiPermissionController::class, 'update'])->name('permissions.update')->middleware('permission:setting-manage');
         Route::delete('permissions/{permission}', [ApiPermissionController::class, 'destroy'])->name('permissions.destroy')->middleware('permission:setting-manage');
 
+        // Items
         Route::get('items', [ApiItemController::class, 'index'])->name('items.index')->middleware('permission:item-list');
         Route::post('items', [ApiItemController::class, 'store'])->name('items.store')->middleware('permission:item-create');
         Route::get('items/{item}', [ApiItemController::class, 'show'])->name('items.show')->middleware('permission:item-list');
         Route::put('items/{item}', [ApiItemController::class, 'update'])->name('items.update')->middleware('permission:item-edit');
         Route::delete('items/{item}', [ApiItemController::class, 'destroy'])->name('items.destroy')->middleware('permission:item-delete');
+
+        // Penjualan & Pembayaran
+        Route::apiResource('penjualan', ApiSaleController::class)->names('penjualan');
+        Route::apiResource('pembayaran', ApiPaymentController::class)->names('pembayaran');
     });
 });
 
