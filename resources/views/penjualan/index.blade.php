@@ -1,51 +1,64 @@
 <x-app-layout>
     <div x-data="saleManagement()">
         <x-m3.page-header title="Penjualan" 
-                          buttonText="Tambah Penjualan" 
+                          :buttonText="auth()->user()->can('sale-create') ? 'Tambah Penjualan' : null" 
                           buttonAction="openCreateModal()" />
 
-        <!-- Date Filter -->
+        <!-- Filter Tanggal -->
         <div class="mb-6">
             <div class="w-full max-w-xs group relative">
                 <label class="block text-sm font-medium text-[#49454F] mb-2 px-1">Filter Tanggal</label>
                 <input type="date" x-model="filterDate" @change="reloadTable()"
-                       class="block w-full border border-[#79747E] rounded-xl px-4 py-3 bg-[#FEF7FF] text-[#1C1B1F] focus:ring-2 focus:ring-[#6750A4] focus:border-transparent transition-all">
+                       class="block w-full border border-[#79747E] rounded-xl px-4 py-3 bg-[#FEF7FF] text-main focus:ring-2 focus:ring-[#6750A4] focus:border-transparent transition-all">
             </div>
         </div>
 
-        <!-- Table Container -->
+        <!-- Wadah Tabel -->
         <x-m3.table-card>
             <table id="sales-table" class="display responsive nowrap w-full">
                 <thead>
                     <tr>
-                        <th>Sales Code</th>
-                        <th>Total Price</th>
-                        <th>Payment Status</th>
-                        <th>Date</th>
+                        <th>Kode Penjualan</th>
+                        <th>Total Harga</th>
+                        <th>Status Pembayaran</th>
+                        <th>Tanggal</th>
                     </tr>
                 </thead>
             </table>
         </x-m3.table-card>
 
-        <!-- Create Sale Modal -->
+        <!-- Modal Tambah Penjualan -->
         <x-m3.modal show="isCreateModalOpen" close="closeCreateModal()" title="'Tambah Penjualan'" maxWidth="2xl">
             <form @submit.prevent="submitCreate" class="space-y-6">
                 <div class="space-y-4">
                     <template x-for="(row, index) in createForm.items" :key="index">
                         <div class="grid grid-cols-12 gap-4 items-end bg-[#ECE6F0] p-4 rounded-2xl">
-                            <div class="col-span-6">
-                                <x-m3.select label="Item" model="row.item_id" @change="updateRowPrice(row)" placeholder="Pilih Item">
-                                    <template x-for="item in itemsList" :key="item.id">
-                                        <option :value="item.id" x-text="`${item.code} - ${item.name}`"></option>
+                            <div class="col-span-6 relative">
+                                <x-m3.input label="Barang" model="row.search" placeholder="Cari Kode atau Nama Barang..." 
+                                            @focus="row.showDropdown = true" 
+                                            @input="row.showDropdown = true; row.item_id = ''; row.highlightedIndex = -1" 
+                                            @keydown.down.prevent="moveHighlight(row, 'down')"
+                                            @keydown.up.prevent="moveHighlight(row, 'up')"
+                                            @keydown.enter.prevent="selectHighlighted(row)"
+                                            @click.away="row.showDropdown = false" />
+                                <div x-show="row.showDropdown && getFilteredItems(row).length > 0" 
+                                     class="absolute z-50 w-full bg-white border border-[#CAC4D0] rounded-xl shadow-lg mt-1 overflow-hidden">
+                                    <template x-for="(item, i) in getFilteredItems(row)" :key="item.id">
+                                        <div @click="selectItem(row, item)" 
+                                             :class="row.highlightedIndex === i ? 'bg-[#EADDFF]' : 'hover:bg-[#F3EDF7]'"
+                                             class="px-4 py-3 cursor-pointer transition-colors border-b border-[#CAC4D0]/30 last:border-0">
+                                            <div class="font-semibold text-sm text-main" x-text="item.code"></div>
+                                            <div class="text-xs text-[#49454F]" x-text="item.name"></div>
+                                        </div>
                                     </template>
-                                </x-m3.select>
+                                </div>
                             </div>
                             <div class="col-span-2">
-                                <x-m3.input label="Qty" type="number" model="row.quantity" @input="calculateSubtotal(row)" min="1" />
+                                <x-m3.input label="Jumlah" type="number" model="row.quantity" @input="calculateSubtotal(row)" min="1" />
                             </div>
                             <div class="col-span-3 text-right">
                                 <label class="block text-xs font-medium text-[#49454F] mb-1">Subtotal</label>
-                                <div class="text-sm font-semibold text-[#1C1B1F] py-2" x-text="formatCurrency(row.subtotal)"></div>
+                                <div class="text-sm font-semibold text-main py-2" x-text="formatCurrency(row.subtotal)"></div>
                             </div>
                             <div class="col-span-1 flex justify-center pb-2">
                                 <button type="button" @click="removeCreateRow(index)" class="text-[#B3261E] hover:bg-[#F9DEDC] p-2 rounded-full transition-all">
@@ -63,7 +76,7 @@
 
                 <div class="border-t border-[#CAC4D0] pt-6 flex justify-between items-center">
                     <div>
-                        <span class="text-[#49454F] text-sm">Grand Total:</span>
+                        <span class="text-[#49454F] text-sm">Total Keseluruhan:</span>
                         <div class="text-2xl font-bold text-[#6750A4]" x-text="formatCurrency(calculateGrandTotal())"></div>
                     </div>
                     <x-m3.modal-actions cancelAction="closeCreateModal()" saveText="Simpan" class="mt-0" />
@@ -71,13 +84,13 @@
             </form>
         </x-m3.modal>
 
-        <!-- Detail & Edit Modal -->
+        <!-- Modal Detail & Edit -->
         <x-m3.modal show="isDetailModalOpen" close="closeDetailModal()" maxWidth="2xl">
-            <!-- Modal Header -->
+            <!-- Header Modal -->
             <div class="flex justify-between items-start mb-8">
                 <div class="flex flex-col">
                     <span class="text-sm font-medium text-[#49454F]" x-text="selectedSale.code"></span>
-                    <span class="text-3xl font-bold text-[#1C1B1F]" x-text="formatCurrency(selectedSale.total_price)"></span>
+                    <span class="text-3xl font-bold text-main" x-text="formatCurrency(selectedSale.total_price)"></span>
                 </div>
                 <div>
                     <span :class="{
@@ -89,19 +102,19 @@
             </div>
 
             <div class="space-y-6">
-                <!-- Detail View Table -->
+                <!-- Tabel Tampilan Detail -->
                 <div x-show="!isEditMode">
                     <table class="w-full text-left">
                         <thead class="border-b border-[#CAC4D0] text-xs text-[#49454F]">
                             <tr>
-                                <th class="py-3 px-1">Kode Item</th>
-                                <th class="py-3 px-1">Nama Item</th>
+                                <th class="py-3 px-1">Kode Barang</th>
+                                <th class="py-3 px-1">Nama Barang</th>
                                 <th class="py-3 px-1">Harga</th>
-                                <th class="py-3 px-1 text-right">Qty</th>
+                                <th class="py-3 px-1 text-right">Jumlah</th>
                                 <th class="py-3 px-1 text-right">Subtotal</th>
                             </tr>
                         </thead>
-                        <tbody class="text-sm text-[#1C1B1F]">
+                        <tbody class="text-sm text-main">
                             <template x-for="item in saleItems" :key="item.id">
                                 <tr class="border-b border-[#CAC4D0]/30">
                                     <td class="py-4 px-1" x-text="item.item.code"></td>
@@ -115,23 +128,36 @@
                     </table>
                 </div>
 
-                <!-- Edit View Form -->
+                <!-- Formulir Tampilan Edit -->
                 <div x-show="isEditMode" class="space-y-4">
                     <template x-for="(row, index) in editForm.items" :key="index">
                         <div class="grid grid-cols-12 gap-4 items-end bg-[#ECE6F0] p-4 rounded-2xl">
-                            <div class="col-span-6">
-                                <x-m3.select label="Item" model="row.item_id" @change="updateRowPrice(row)" placeholder="Pilih Item">
-                                    <template x-for="item in itemsList" :key="item.id">
-                                        <option :value="item.id" x-text="`${item.code} - ${item.name}`"></option>
+                            <div class="col-span-6 relative">
+                                <x-m3.input label="Barang" model="row.search" placeholder="Cari Kode atau Nama Barang..." 
+                                            @focus="row.showDropdown = true" 
+                                            @input="row.showDropdown = true; row.item_id = ''; row.highlightedIndex = -1" 
+                                            @keydown.down.prevent="moveHighlight(row, 'down')"
+                                            @keydown.up.prevent="moveHighlight(row, 'up')"
+                                            @keydown.enter.prevent="selectHighlighted(row)"
+                                            @click.away="row.showDropdown = false" />
+                                <div x-show="row.showDropdown && getFilteredItems(row).length > 0" 
+                                     class="absolute z-50 w-full bg-white border border-[#CAC4D0] rounded-xl shadow-lg mt-1 overflow-hidden">
+                                    <template x-for="(item, i) in getFilteredItems(row)" :key="item.id">
+                                        <div @click="selectItem(row, item)" 
+                                             :class="row.highlightedIndex === i ? 'bg-[#EADDFF]' : 'hover:bg-[#F3EDF7]'"
+                                             class="px-4 py-3 cursor-pointer transition-colors border-b border-[#CAC4D0]/30 last:border-0">
+                                            <div class="font-semibold text-sm text-main" x-text="item.code"></div>
+                                            <div class="text-xs text-[#49454F]" x-text="item.name"></div>
+                                        </div>
                                     </template>
-                                </x-m3.select>
+                                </div>
                             </div>
                             <div class="col-span-2">
-                                <x-m3.input label="Qty" type="number" model="row.quantity" @input="calculateSubtotal(row)" min="1" />
+                                <x-m3.input label="Jumlah" type="number" model="row.quantity" @input="calculateSubtotal(row)" min="1" />
                             </div>
                             <div class="col-span-3 text-right">
                                 <label class="block text-xs font-medium text-[#49454F] mb-1">Subtotal</label>
-                                <div class="text-sm font-semibold text-[#1C1B1F] py-2" x-text="formatCurrency(row.subtotal)"></div>
+                                <div class="text-sm font-semibold text-main py-2" x-text="formatCurrency(row.subtotal)"></div>
                             </div>
                             <div class="col-span-1 flex justify-center pb-2">
                                 <button type="button" @click="removeEditRow(index)" class="text-[#B3261E] hover:bg-[#F9DEDC] p-2 rounded-full transition-all">
@@ -146,16 +172,22 @@
                     </button>
                 </div>
 
-                <!-- Footer Actions -->
+                <!-- Aksi Footer -->
                 <div class="border-t border-[#CAC4D0] pt-6 flex justify-end gap-3">
                     <template x-if="!isEditMode">
                         <div class="flex gap-3 w-full justify-between items-center">
+                            @can('sale-delete')
                             <button type="button" @click="deleteSale()" x-show="selectedSale.payment_status === 'Belum Dibayar'"
                                     class="text-[#B3261E] font-semibold px-6 py-2.5 rounded-full hover:bg-[#F9DEDC] transition-all">Hapus</button>
+                            @else
+                            <div></div>
+                            @endcan
                             <div class="flex gap-3">
                                 <button type="button" @click="closeDetailModal()" class="text-[#6750A4] font-semibold px-6 py-2.5 rounded-full hover:bg-[#ECE6F0] transition-all">Tutup</button>
+                                @can('sale-edit')
                                 <button type="button" @click="enterEditMode()" x-show="selectedSale.payment_status === 'Belum Dibayar'"
                                         class="bg-[#6750A4] text-white font-semibold px-8 py-2.5 rounded-full hover:bg-[#4F378B] transition-all shadow-md">Edit</button>
+                                @endcan
                             </div>
                         </div>
                     </template>
@@ -198,6 +230,7 @@
                         serverSide: true,
                         responsive: true,
                         pageLength: 10,
+                        stripeClasses: [],
                         ajax: {
                             url: "{{ route('api.penjualan.index') }}",
                             data: function(d) {
@@ -210,7 +243,7 @@
                                 data: 'total_price', 
                                 name: 'total_price',
                                 render: function(data) {
-                                    return `<span class="font-semibold text-[#1C1B1F]">${self.formatCurrency(data)}</span>`;
+                                    return `<span class="font-semibold text-main">${self.formatCurrency(data)}</span>`;
                                 }
                             },
                             { 
@@ -227,7 +260,6 @@
                         ],
                         order: [[3, 'desc']],
                         createdRow: function(row, data, dataIndex) {
-                            $(row).addClass('hover:bg-[#ECE6F0] transition-all cursor-pointer');
                             $(row).on('click', () => self.openDetailModal(data.id));
                         }
                     });
@@ -242,22 +274,51 @@
                     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
                 },
 
-                // Create Logic
+                // Logika Tambah
                 openCreateModal() {
-                    this.createForm.items = [{ item_id: '', quantity: 1, price: 0, subtotal: 0 }];
+                    this.createForm.items = [{ item_id: '', search: '', showDropdown: false, highlightedIndex: -1, quantity: 1, price: 0, subtotal: 0 }];
                     this.isCreateModalOpen = true;
                 },
                 closeCreateModal() { this.isCreateModalOpen = false; },
                 addCreateRow() {
-                    this.createForm.items.push({ item_id: '', quantity: 1, price: 0, subtotal: 0 });
+                    this.createForm.items.push({ item_id: '', search: '', showDropdown: false, highlightedIndex: -1, quantity: 1, price: 0, subtotal: 0 });
                 },
                 removeCreateRow(index) {
                     if (this.createForm.items.length > 1) this.createForm.items.splice(index, 1);
                 },
-                updateRowPrice(row) {
-                    const item = this.itemsList.find(i => i.id == row.item_id);
-                    row.price = item ? Number(item.price) : 0;
+                getFilteredItems(row) {
+                    if (!row.search) return this.itemsList.slice(0, 5);
+                    const search = row.search.toLowerCase();
+                    return this.itemsList
+                        .filter(i => i.name.toLowerCase().includes(search) || i.code.toLowerCase().includes(search))
+                        .slice(0, 5);
+                },
+                selectItem(row, item) {
+                    row.item_id = item.id;
+                    row.search = `${item.code} - ${item.name}`;
+                    row.price = Number(item.price);
+                    row.showDropdown = false;
+                    row.highlightedIndex = -1;
                     this.calculateSubtotal(row);
+                },
+                moveHighlight(row, direction) {
+                    const filtered = this.getFilteredItems(row);
+                    if (filtered.length === 0) return;
+                    
+                    if (direction === 'down') {
+                        row.highlightedIndex = (row.highlightedIndex + 1) % filtered.length;
+                    } else if (direction === 'up') {
+                        row.highlightedIndex = (row.highlightedIndex - 1 + filtered.length) % filtered.length;
+                    }
+                    row.showDropdown = true;
+                },
+                selectHighlighted(row) {
+                    const filtered = this.getFilteredItems(row);
+                    if (row.highlightedIndex >= 0 && row.highlightedIndex < filtered.length) {
+                        this.selectItem(row, filtered[row.highlightedIndex]);
+                    } else if (filtered.length > 0) {
+                        this.selectItem(row, filtered[0]);
+                    }
                 },
                 calculateSubtotal(row) {
                     row.subtotal = Number(row.price) * Number(row.quantity);
@@ -282,7 +343,7 @@
                     });
                 },
 
-                // Detail & Edit Logic
+                // Logika Detail & Edit
                 openDetailModal(id) {
                     fetch(`{{ url('api/penjualan') }}/${id}`)
                         .then(res => {
@@ -303,16 +364,22 @@
                     this.isDetailModalOpen = false;
                 },
                 enterEditMode() {
-                    this.editForm.items = this.saleItems.map(si => ({
-                        item_id: si.item_id,
-                        quantity: si.quantity,
-                        price: Number(si.price),
-                        subtotal: Number(si.subtotal)
-                    }));
+                    this.editForm.items = this.saleItems.map(si => {
+                        const item = this.itemsList.find(i => i.id == si.item_id);
+                        return {
+                            item_id: si.item_id,
+                            search: item ? `${item.code} - ${item.name}` : '',
+                            showDropdown: false,
+                            highlightedIndex: -1,
+                            quantity: si.quantity,
+                            price: Number(si.price),
+                            subtotal: Number(si.subtotal)
+                        };
+                    });
                     this.isEditMode = true;
                 },
                 addEditRow() {
-                    this.editForm.items.push({ item_id: '', quantity: 1, price: 0, subtotal: 0 });
+                    this.editForm.items.push({ item_id: '', search: '', showDropdown: false, highlightedIndex: -1, quantity: 1, price: 0, subtotal: 0 });
                 },
                 removeEditRow(index) {
                     if (this.editForm.items.length > 1) this.editForm.items.splice(index, 1);

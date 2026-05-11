@@ -6,7 +6,7 @@
 ])
 
 <div class="flex justify-between items-center mb-8">
-    <h1 class="text-3xl font-medium text-[#1C1B1F]">{{ $title }}</h1>
+    <h1 class="text-3xl font-medium text-main">{{ $title }}</h1>
     
     @if($buttonText && $buttonAction)
         <button @click="{{ $buttonAction }}" 

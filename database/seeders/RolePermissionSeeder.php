@@ -29,37 +29,60 @@ class RolePermissionSeeder extends Seeder
             'item-edit',
             'item-delete',
             'setting-manage', // For Category and Role management
+            'sale-list',
+            'sale-create',
+            'sale-edit',
+            'sale-delete',
+            'payment-list',
+            'payment-create',
+            'payment-edit',
+            'payment-delete',
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::findOrCreate($permission);
         }
 
         // Create roles and assign created permissions
-        $roleAdmin = Role::create(['name' => 'Admin']);
+        $roleAdmin = Role::findOrCreate('Admin');
         $roleAdmin->givePermissionTo(Permission::all());
 
-        $roleStaff = Role::create(['name' => 'Staff']);
-        $roleStaff->givePermissionTo(['user-list', 'item-list', 'item-create', 'item-edit']);
+        $roleStaff = Role::findOrCreate('Staff');
+        $roleStaff->givePermissionTo([
+            'user-list', 
+            'item-list', 
+            'item-create', 
+            'item-edit',
+            'sale-list',
+            'sale-create',
+            'sale-edit',
+            'payment-list',
+            'payment-create',
+            'payment-edit',
+        ]);
 
         // Create Default Admin User
-        $admin = User::create([
-            'name' => 'Administrator',
-            'email' => 'admin@admin.com',
-            'password' => bcrypt('admin'),
-        ]);
-        $admin->assignRole($roleAdmin);
+        $admin = User::updateOrCreate(
+            ['email' => 'admin@admin.com'],
+            [
+                'name' => 'Administrator',
+                'password' => bcrypt('admin'),
+            ]
+        );
+        $admin->syncRoles($roleAdmin);
 
         // Create Default Staff User
-        $staff = User::create([
-            'name' => 'Staff Member',
-            'email' => 'staff@staff.com',
-            'password' => bcrypt('staff'),
-        ]);
-        $staff->assignRole($roleStaff);
+        $staff = User::updateOrCreate(
+            ['email' => 'staff@staff.com'],
+            [
+                'name' => 'Staff Member',
+                'password' => bcrypt('staff'),
+            ]
+        );
+        $staff->syncRoles($roleStaff);
 
         // Seed some Categories
-        Category::create(['name' => 'Electronics', 'prefix' => 'EL']);
-        Category::create(['name' => 'Fashion', 'prefix' => 'FS']);
+        Category::firstOrCreate(['prefix' => 'EL'], ['name' => 'Electronics']);
+        Category::firstOrCreate(['prefix' => 'FS'], ['name' => 'Fashion']);
     }
 }

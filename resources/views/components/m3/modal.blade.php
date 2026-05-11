@@ -46,7 +46,7 @@ $maxWidth = [
          class="relative bg-[#FEF7FF] rounded-[28px] shadow-2xl w-full {{ $maxWidth }} p-8 z-10 max-h-[90vh] overflow-y-auto">
         
         @if($title)
-            <h3 class="text-2xl font-normal text-[#1C1B1F] mb-6" x-text="{{ $title }}"></h3>
+            <h3 class="text-2xl font-normal text-main mb-6" x-text="{{ $title }}"></h3>
         @endif
 
         {{ $slot }}

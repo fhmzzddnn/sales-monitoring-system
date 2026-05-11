@@ -18,7 +18,7 @@
         <input type="{{ $type }}" 
                @if($model) x-model="{{ $model }}" @endif
                placeholder="{{ $placeholder }}" 
-               class="block w-full border border-[#79747E] rounded-xl {{ $prefix ? 'pl-10' : 'px-4' }} py-3 bg-transparent text-[#1C1B1F] placeholder:text-[#79747E]/50 focus:ring-2 focus:ring-[#6750A4] focus:border-transparent transition-all">
+               class="block w-full border border-[#79747E] rounded-xl {{ $prefix ? 'pl-10' : 'px-4' }} py-3 bg-transparent text-main placeholder:text-[#79747E]/50 focus:ring-2 focus:ring-[#6750A4] focus:border-transparent transition-all">
     </div>
     @if($error)
         <template x-if="{{ $error }}">

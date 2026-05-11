@@ -13,7 +13,7 @@
     <div class="relative">
         <select @if($model) x-model="{{ $model }}" @endif
                 style="background-image: none;"
-                class="block w-full border border-[#79747E] rounded-xl px-4 py-3 bg-transparent text-[#1C1B1F] focus:ring-2 focus:ring-[#6750A4] focus:border-transparent transition-all appearance-none">
+                class="block w-full border border-[#79747E] rounded-xl px-4 py-3 bg-transparent text-main focus:ring-2 focus:ring-[#6750A4] focus:border-transparent transition-all appearance-none">
             @if($placeholder)
                 <option value="">{{ $placeholder }}</option>
             @endif

@@ -1,15 +1,15 @@
 <x-app-layout>
     <div x-data="paymentManagement()">
         <x-m3.page-header title="Pembayaran" 
-                          buttonText="Tambah Pembayaran" 
+                          :buttonText="auth()->user()->can('payment-create') ? 'Tambah Pembayaran' : null" 
                           buttonAction="openCreateModal()" />
 
-        <!-- Date Filter -->
+        <!-- Filter Tanggal -->
         <div class="mb-6">
             <div class="w-full max-w-xs group relative">
                 <label class="block text-sm font-medium text-[#49454F] mb-2 px-1">Filter Tanggal</label>
                 <input type="date" x-model="filterDate" @change="reloadTable()" 
-                       class="block w-full border border-[#79747E] rounded-xl px-4 py-3 bg-[#FEF7FF] text-[#1C1B1F] focus:ring-2 focus:ring-[#6750A4] focus:border-transparent transition-all">
+                       class="block w-full border border-[#79747E] rounded-xl px-4 py-3 bg-[#FEF7FF] text-main focus:ring-2 focus:ring-[#6750A4] focus:border-transparent transition-all">
             </div>
         </div>
 
@@ -27,7 +27,7 @@
             </table>
         </x-m3.table-card>
 
-        <!-- Create Modal -->
+        <!-- Modal Tambah -->
         <x-m3.modal show="isCreateModalOpen" close="closeCreateModal()" title="'Tambah Pembayaran'" maxWidth="md">
             <form @submit.prevent="submitCreate" class="space-y-6">
                 <x-m3.select label="Pilih Penjualan" model="createForm.sale_id" @change="updateSaleTotal()" placeholder="Pilih Penjualan">
@@ -38,7 +38,7 @@
 
                 <div x-show="selectedSaleTotal > 0" class="bg-[#ECE6F0] p-4 rounded-2xl">
                     <span class="text-xs text-[#49454F]">Total Tagihan:</span>
-                    <div class="text-xl font-bold text-[#1C1B1F]" x-text="formatCurrency(selectedSaleTotal)"></div>
+                    <div class="text-xl font-bold text-main" x-text="formatCurrency(selectedSaleTotal)"></div>
                 </div>
 
                 <x-m3.input label="Jumlah Bayar" type="number" model="createForm.amount_paid" prefix="Rp" error="errors.amount_paid" />
@@ -54,13 +54,13 @@
             </form>
         </x-m3.modal>
 
-        <!-- Detail & Edit Modal -->
+        <!-- Modal Detail & Edit -->
         <x-m3.modal show="isDetailModalOpen" close="closeDetailModal()" maxWidth="2xl">
-            <!-- Modal Header -->
+            <!-- Header Modal -->
             <div class="flex justify-between items-start mb-8">
                 <div class="flex flex-col">
                     <span class="text-sm font-medium text-[#49454F]" x-text="selectedPayment.code"></span>
-                    <span class="text-3xl font-bold text-[#1C1B1F]" x-text="formatCurrency(selectedPayment.amount_paid)"></span>
+                    <span class="text-3xl font-bold text-main" x-text="formatCurrency(selectedPayment.amount_paid)"></span>
                 </div>
                 <div>
                     <span :class="{
@@ -74,26 +74,26 @@
                 <div class="grid grid-cols-2 gap-4 bg-[#F3EDF7] p-4 rounded-2xl">
                     <div>
                         <span class="text-xs text-[#49454F]">Kode Penjualan:</span>
-                        <div class="font-bold text-[#1C1B1F]" x-text="selectedSale.code"></div>
+                        <div class="font-bold text-main" x-text="selectedSale.code"></div>
                     </div>
                     <div>
                         <span class="text-xs text-[#49454F]">Total Penjualan:</span>
-                        <div class="font-bold text-[#1C1B1F]" x-text="formatCurrency(selectedSale.total_price)"></div>
+                        <div class="font-bold text-main" x-text="formatCurrency(selectedSale.total_price)"></div>
                     </div>
                 </div>
 
-                <!-- Sale Items Table -->
+                <!-- Tabel Barang Penjualan -->
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
                         <thead class="border-b border-[#CAC4D0] text-xs text-[#49454F]">
                             <tr>
-                                <th class="py-3 px-1">Item</th>
+                                <th class="py-3 px-1">Barang</th>
                                 <th class="py-3 px-1">Harga</th>
-                                <th class="py-3 px-1 text-right">Qty</th>
+                                <th class="py-3 px-1 text-right">Jumlah</th>
                                 <th class="py-3 px-1 text-right">Subtotal</th>
                             </tr>
                         </thead>
-                        <tbody class="text-sm text-[#1C1B1F]">
+                        <tbody class="text-sm text-main">
                             <template x-for="item in saleItems" :key="item.id">
                                 <tr class="border-b border-[#CAC4D0]/30">
                                     <td class="py-4 px-1" x-text="item.item.name"></td>
@@ -106,7 +106,7 @@
                     </table>
                 </div>
 
-                <!-- Edit Mode -->
+                <!-- Mode Edit -->
                 <div x-show="isEditMode" class="bg-[#ECE6F0] p-6 rounded-3xl space-y-4">
                     <x-m3.input label="Jumlah Bayar Baru" type="number" model="editForm.amount_paid" prefix="Rp" error="errors.amount_paid" />
                     <div class="flex justify-between items-center text-sm">
@@ -117,15 +117,21 @@
                     </div>
                 </div>
 
-                <!-- Actions -->
+                <!-- Aksi -->
                 <div class="border-t border-[#CAC4D0] pt-6">
                     <template x-if="!isEditMode">
                         <div class="flex justify-between items-center w-full">
+                            @can('payment-delete')
                             <button @click="deletePayment()" class="text-[#B3261E] font-semibold px-6 py-2.5 rounded-full hover:bg-[#F9DEDC] transition-all">Hapus</button>
+                            @else
+                            <div></div>
+                            @endcan
                             <div class="flex gap-3">
                                 <button @click="closeDetailModal()" class="text-[#6750A4] font-semibold px-6 py-2.5 rounded-full hover:bg-[#ECE6F0] transition-all">Tutup</button>
+                                @can('payment-edit')
                                 <button @click="enterEditMode()" x-show="selectedPayment.payment_status !== 'Lunas'" 
                                         class="bg-[#6750A4] text-white font-semibold px-8 py-2.5 rounded-full hover:bg-[#4F378B] shadow-md transition-all">Edit</button>
+                                @endcan
                             </div>
                         </div>
                     </template>
@@ -160,6 +166,7 @@
                         serverSide: true,
                         responsive: true,
                         pageLength: 10,
+                        stripeClasses: [],
                         ajax: {
                             url: "{{ route('api.pembayaran.index') }}",
                             data: function(d) {
@@ -184,8 +191,8 @@
                             },
                             { data: 'created_at', name: 'created_at' }
                         ],
+                        order: [[4, 'desc']],
                         createdRow: function(row, data) {
-                            $(row).addClass('cursor-pointer hover:bg-[#ECE6F0] transition-all');
                             $(row).on('click', () => self.openDetailModal(data.id));
                         }
                     });

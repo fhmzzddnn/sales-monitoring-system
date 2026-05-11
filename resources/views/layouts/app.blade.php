@@ -74,17 +74,42 @@
                 font-size: 0.75rem;
                 text-transform: uppercase;
                 letter-spacing: 0.08em;
-                padding: 1.25rem 1rem !important;
+                padding: 0.75rem 1rem !important;
                 border-bottom: 1px solid var(--m3-outline-variant) !important;
             }
             table.dataTable thead th:first-child { border-top-left-radius: 12px; }
             table.dataTable thead th:last-child { border-top-right-radius: 12px; }
             
             table.dataTable tbody td {
-                padding: 1.25rem 1rem !important;
+                padding: 0.75rem 1rem !important;
                 border-bottom: 1px solid var(--m3-outline-variant);
                 color: #1C1B1F;
                 font-size: 0.9rem;
+            }
+
+            /* Consistent Row Styling */
+            table.dataTable tbody tr,
+            table tbody tr.border-b {
+                cursor: pointer;
+                transition: background-color 0.2s ease;
+            }
+
+            table.dataTable tbody tr:hover,
+            table tbody tr.border-b:hover {
+                background-color: var(--m3-surface-container-high) !important;
+            }
+
+            /* Comprehensive reset to disable all alternating and column-sorting background colors */
+            table.dataTable,
+            table.dataTable tbody td,
+            table.dataTable.display tbody tr.odd,
+            table.dataTable.display tbody tr.even,
+            table.dataTable tbody td.sorting_1,
+            table.dataTable tbody td.sorting_2,
+            table.dataTable tbody td.sorting_3,
+            table.dataTable.display tbody tr.odd > .sorting_1,
+            table.dataTable.display tbody tr.even > .sorting_1 {
+                background-color: transparent !important;
             }
             table.dataTable.no-footer { border-bottom: none !important; }
 
@@ -113,7 +138,7 @@
             ::-webkit-scrollbar-thumb:hover { background: var(--m3-outline); }
         </style>
     </head>
-    <body class="antialiased bg-[#FEF7FF] text-[#1C1B1F]">
+    <body class="antialiased bg-[#FEF7FF] text-main">
         <div class="flex h-screen overflow-hidden" x-data="{ sidebarOpen: true }">
             
             <!-- Sidebar (M3 Navigation Rail / Drawer Hybrid) -->
@@ -124,7 +149,7 @@
                     <div class="bg-[#6750A4] w-10 h-10 rounded-xl flex items-center justify-center mr-3 shadow-sm">
                         <span class="text-white font-bold text-xl">S</span>
                     </div>
-                    <span class="text-xl font-semibold tracking-tight text-[#1C1B1F]">Sales Pro</span>
+                    <span class="text-xl font-semibold tracking-tight text-main">Sistem Penjualan</span>
                 </div>
 
                 <nav class="flex-1 overflow-y-auto mt-2 space-y-1">
@@ -134,9 +159,10 @@
                         <div class="flex items-center justify-center w-6 h-6 mr-3">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                         </div>
-                        <span class="font-medium">Dashboard</span>
+                        <span class="font-medium">Beranda</span>
                     </a>
 
+                    @if(Auth::user()->roles->count() > 0)
                     <a href="{{ route('penjualan.index') }}" 
                        class="group flex items-center px-4 py-3 rounded-full transition-all duration-200 {{ request()->routeIs('penjualan.*') ? 'bg-[#EADDFF] text-[#21005D]' : 'hover:bg-[#ECE6F0] text-[#49454F]' }}">
                         <div class="flex items-center justify-center w-6 h-6 mr-3">
@@ -161,7 +187,7 @@
                                 <div class="flex items-center justify-center w-6 h-6 mr-3">
                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l-5.5 9h11L12 2zm0 3.84L13.93 9h-3.87L12 5.84zM17.5 13c-2.49 0-4.5 2.01-4.5 4.5s2.01 4.5 4.5 4.5 4.5-2.01 4.5-4.5-2.01-4.5-4.5-4.5zm0 7c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5zM3 21.5h8v-8H3v8zm2-6h4v4H5v-4z"/></svg>
                                 </div>
-                                <span class="font-medium">Master</span>
+                                <span class="font-medium">Data Master</span>
                             </div>
                             <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
@@ -169,23 +195,24 @@
                             @can('user-list')
                             <a href="{{ route('master.users.index') }}" 
                                class="block px-6 py-2 rounded-full text-sm font-medium transition-all {{ request()->routeIs('master.users.*') ? 'bg-[#EADDFF] text-[#21005D]' : 'text-[#49454F] hover:bg-[#ECE6F0]' }}">
-                                Users
+                                Pengguna
                             </a>
                             @endcan
                             @can('item-list')
                             <a href="{{ route('master.items.index') }}" 
                                class="block px-6 py-2 rounded-full text-sm font-medium transition-all {{ request()->routeIs('master.items.*') ? 'bg-[#EADDFF] text-[#21005D]' : 'text-[#49454F] hover:bg-[#ECE6F0]' }}">
-                                Items
+                                Barang
                             </a>
                             @endcan
                             @can('setting-manage')
                             <a href="{{ route('master.settings.index') }}" 
                                class="block px-6 py-2 rounded-full text-sm font-medium transition-all {{ request()->routeIs('master.settings.*') ? 'bg-[#EADDFF] text-[#21005D]' : 'text-[#49454F] hover:bg-[#ECE6F0]' }}">
-                                System Settings
+                                Pengaturan Sistem
                             </a>
                             @endcan
                         </div>
                     </div>
+                    @endif
                 </nav>
 
                 <!-- Fixed Logout M3 -->
@@ -194,7 +221,7 @@
                         @csrf
                         <button type="submit" class="flex items-center w-full px-4 py-3 rounded-full text-[#B3261E] hover:bg-[#F9DEDC] transition-all duration-200 font-medium">
                             <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                            <span>Logout</span>
+                            <span>Keluar</span>
                         </button>
                     </form>
                 </div>
@@ -207,19 +234,16 @@
                 <div x-show="sidebarOpen" @click="sidebarOpen = false" x-cloak class="fixed inset-0 bg-black/20 z-20 lg:hidden"></div>
 
                 <!-- Header (M3 Top App Bar Style) -->
-                <header class="flex items-center justify-between h-16 bg-[#FEF7FF] px-6 z-10">
+                <header class="flex items-center justify-between h-20 bg-[#FEF7FF] px-3 z-10">
                     <div class="flex items-center">
                         <button @click="sidebarOpen = !sidebarOpen" class="text-[#49454F] hover:bg-[#ECE6F0] p-2 rounded-full lg:hidden mr-2 transition-colors">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                         </button>
-                        <h2 class="text-xl font-normal text-[#1C1B1F]">
-                            Sales Information System
-                        </h2>
                     </div>
                     
                     <div class="flex items-center gap-4" x-data="{ userMenuOpen: false }">
                         <div @click="userMenuOpen = !userMenuOpen" @click.away="userMenuOpen = false" 
-                             class="relative flex items-center bg-[#ECE6F0] px-4 py-2 rounded-full border border-transparent hover:border-[#CAC4D0] transition-all cursor-pointer">
+                             class="relative flex items-center bg-[#ECE6F0] px-4 py-2 m-2 rounded-full border border-transparent hover:border-[#CAC4D0] transition-all cursor-pointer">
                             <div class="w-6 h-6 bg-[#6750A4] rounded-full flex items-center justify-center text-[10px] text-white font-bold mr-2 uppercase">
                                 {{ substr(Auth::user()->name, 0, 2) }}
                             </div>
@@ -237,14 +261,14 @@
                                  x-cloak>
                                 <a href="{{ route('profile.edit') }}" class="block px-4 py-3 text-sm text-[#49454F] hover:bg-[#ECE6F0] transition-colors flex items-center gap-3">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                    <span>Profile</span>
+                                    <span>Profil</span>
                                 </a>
                                 <div class="border-t border-gray-100"></div>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit" class="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-3">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                                        <span>Logout</span>
+                                        <span>Keluar</span>
                                     </button>
                                 </form>
                             </div>
@@ -253,12 +277,35 @@
                 </header>
 
                 <!-- Page Content -->
-                <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-8">
+                <main class="flex-1 overflow-x-hidden overflow-y-auto p-3 sm:p-8">
                     {{ $slot }}
                 </main>
             </div>
         </div>
 
+        @include('layouts.crud-js')
         @stack('scripts')
+
+        <script>
+            $(document).ready(function() {
+                @if(session('error'))
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Akses Ditolak',
+                        text: "{{ session('error') }}",
+                        confirmButtonColor: '#6750A4',
+                    });
+                @endif
+
+                @if(session('success'))
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: "{{ session('success') }}",
+                        confirmButtonColor: '#6750A4',
+                    });
+                @endif
+            });
+        </script>
     </body>
 </html>
