@@ -60,6 +60,7 @@ class DashboardController extends Controller
             $itemQuantityData[] = [
                 'id' => $item->id,
                 'name' => $item->name,
+                'code' => $item->code,
                 'data' => $data,
                 'color' => $this->getRandomColor($item->id)
             ];

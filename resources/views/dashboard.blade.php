@@ -51,8 +51,10 @@
                     <button @click="isItemModalOpen = true" class="text-sm font-medium text-[#6750A4] hover:underline">Filter Items</button>
                 </div>
 
-                <div class="h-80 flex-1">
-                    <canvas id="itemChart"></canvas>
+                <div class="h-80 flex-1 overflow-x-auto">
+                    <div x-ref="itemChartContainer" style="min-width: 100%; height: 100%;">
+                        <canvas id="itemChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -137,16 +139,27 @@
                 initItemChart() {
                     const ctx = document.getElementById('itemChart').getContext('2d');
                     this.itemChart = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                            datasets: this.getVisibleDatasets()
-                        },
+                        type: 'bar',
+                        data: this.getItemChartData(),
                         options: {
+                            animation: {
+                                duration: 750
+                            },
                             responsive: true,
                             maintainAspectRatio: false,
-                            plugins: { legend: { display: false } },
+                            plugins: { 
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        title: (items) => items[0].label,
+                                        label: (item) => `Quantity: ${item.raw}`
+                                    }
+                                }
+                            },
                             scales: {
+                                x: {
+                                    display: false
+                                },
                                 y: {
                                     beginAtZero: true,
                                     ticks: { stepSize: 1 }
@@ -154,23 +167,57 @@
                             }
                         }
                     });
+                    this.updateItemChartWidth();
                 },
 
-                getVisibleDatasets() {
-                    return this.itemData
+                getItemChartData() {
+                    let visibleItems = this.itemData
                         .filter(item => this.selectedItems.includes(item.id))
                         .map(item => ({
-                            label: item.name,
-                            data: item.data,
-                            borderColor: item.color,
-                            backgroundColor: item.color + '20',
-                            tension: 0.3,
-                            pointRadius: 3
-                        }));
+                            ...item,
+                            totalQty: item.data.reduce((a, b) => a + b, 0)
+                        }))
+                        .sort((a, b) => b.totalQty - a.totalQty);
+
+                    let labels = visibleItems.map(item => item.name);
+                    let data = visibleItems.map(item => item.totalQty);
+                    let bgColors = visibleItems.map(item => item.color);
+                    
+                    if (visibleItems.length < 10) {
+                        const diff = 10 - visibleItems.length;
+                        for (let i = 0; i < diff; i++) {
+                            labels.push('');
+                            data.push(null);
+                            bgColors.push('transparent');
+                        }
+                    }
+
+                    return {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Total Quantity Sold',
+                            data: data,
+                            backgroundColor: bgColors,
+                            borderColor: bgColors,
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
+                    };
+                },
+
+                updateItemChartWidth() {
+                    const visibleCount = this.selectedItems.length;
+                    const container = this.$refs.itemChartContainer;
+                    if (visibleCount > 10) {
+                        container.style.width = (visibleCount * 10) + '%';
+                    } else {
+                        container.style.width = '100%';
+                    }
                 },
 
                 updateItemChart() {
-                    this.itemChart.data.datasets = this.getVisibleDatasets();
+                    this.itemChart.data = this.getItemChartData();
+                    this.updateItemChartWidth();
                     this.itemChart.update();
                 }
             }
