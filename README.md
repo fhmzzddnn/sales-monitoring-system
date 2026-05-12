@@ -20,7 +20,7 @@ cd AdibayuTest
 
 ### 2. Initial Setup
 
-Copy the example environment file:
+Copy the example environment file. It is already pre-configured for the Docker Sail environment:
 
 ```bash
 cp .env.example .env
@@ -28,7 +28,9 @@ cp .env.example .env
 
 ### 3. Install Dependencies
 
-You can install the PHP dependencies using a small Docker container to avoid needing PHP installed locally:
+You can install the PHP dependencies using one of the following methods:
+
+#### Option A: Using Docker (Recommended if you don't have PHP/Composer)
 
 ```bash
 docker run --rm \
@@ -39,27 +41,17 @@ docker run --rm \
     composer install --ignore-platform-reqs
 ```
 
-*(Note: Adjust the image name `php84-composer` if you need a different PHP version, though Sail usually handles this.)*
+*(Note: Adjust the image name `php84-composer` if you need a different PHP version.)*
 
-### 4. Configure Environment
+#### Option B: Local PHP & Composer
 
-Open the `.env` file and ensure the database settings match the Docker configuration in `compose.yaml`:
+If you already have PHP and Composer installed on your machine, simply run:
 
-```env
-DB_CONNECTION=pgsql
-DB_HOST=pgsql
-DB_PORT=5432
-DB_DATABASE=adibayutest
-DB_USERNAME=sail
-DB_PASSWORD=password
-
-REDIS_HOST=redis
-MAIL_MAILER=smtp
-MAIL_HOST=mailpit
-MAIL_PORT=1025
+```bash
+composer install
 ```
 
-### 5. Start the Application
+### 4. Start the Application
 
 Start the Docker containers using Laravel Sail:
 
@@ -67,19 +59,19 @@ Start the Docker containers using Laravel Sail:
 ./vendor/bin/sail up -d
 ```
 
-### 6. Generate Application Key
+### 5. Generate Application Key
 
 ```bash
 ./vendor/bin/sail artisan key:generate
 ```
 
-### 7. Run Migrations and Seeders
+### 6. Run Migrations and Seeders
 
 ```bash
 ./vendor/bin/sail artisan migrate --seed
 ```
 
-### 8. Frontend Setup
+### 7. Frontend Setup
 
 Install NPM dependencies and build the assets:
 
@@ -93,6 +85,16 @@ Or run the development server:
 ```bash
 ./vendor/bin/sail npm run dev
 ```
+
+## Default Credentials
+
+After seeding the database, you can use the following accounts to log in (password for all is `password`):
+
+| Role | Email | Permissions |
+| :--- | :--- | :--- |
+| **Admin** | `admin@mail.com` | Full access to all features and settings. |
+| **Supervisor** | `supervisor@mail.com` | Manage Items, Sales, and Payments. |
+| **Staff** | `staff@mail.com` | Manage Sales and Payments only. |
 
 ## Accessing the Application
 

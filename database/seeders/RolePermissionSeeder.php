@@ -3,10 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use App\Models\Category;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Hash;
 
 class RolePermissionSeeder extends Seeder
 {
@@ -28,7 +28,7 @@ class RolePermissionSeeder extends Seeder
             'item-create',
             'item-edit',
             'item-delete',
-            'setting-manage', // For Category and Role management
+            'setting-manage',
             'sale-list',
             'sale-create',
             'sale-edit',
@@ -43,46 +43,70 @@ class RolePermissionSeeder extends Seeder
             Permission::findOrCreate($permission);
         }
 
-        // Create roles and assign created permissions
+        // Create roles
         $roleAdmin = Role::findOrCreate('Admin');
-        $roleAdmin->givePermissionTo(Permission::all());
-
+        $roleSupervisor = Role::findOrCreate('Supervisor');
         $roleStaff = Role::findOrCreate('Staff');
-        $roleStaff->givePermissionTo([
-            'user-list', 
-            'item-list', 
-            'item-create', 
+
+        // Admin: all permissions
+        $roleAdmin->syncPermissions(Permission::all());
+
+        // Supervisor: edit all except system settings and master user, cannot see system settings
+        $roleSupervisor->syncPermissions([
+            'item-list',
+            'item-create',
             'item-edit',
+            'item-delete',
+            'sale-list',
+            'sale-create',
+            'sale-edit',
+            'sale-delete',
+            'payment-list',
+            'payment-create',
+            'payment-edit',
+            'payment-delete',
+            // Note: intentionally excluded user-* and setting-manage
+        ]);
+
+        // Staff: only edit sales and payment, cannot see system settings
+        $roleStaff->syncPermissions([
             'sale-list',
             'sale-create',
             'sale-edit',
             'payment-list',
             'payment-create',
             'payment-edit',
+            // Note: intentionally excluded item-*, user-*, and setting-manage
         ]);
 
-        // Create Default Admin User
+        // Create Admin User
         $admin = User::updateOrCreate(
-            ['email' => 'admin@admin.com'],
+            ['email' => 'admin@mail.com'],
             [
-                'name' => 'Administrator',
-                'password' => bcrypt('admin'),
+                'name' => 'Admin User',
+                'password' => Hash::make('password'),
             ]
         );
         $admin->syncRoles($roleAdmin);
 
-        // Create Default Staff User
-        $staff = User::updateOrCreate(
-            ['email' => 'staff@staff.com'],
+        // Create Supervisor User
+        $supervisor = User::updateOrCreate(
+            ['email' => 'supervisor@mail.com'],
             [
-                'name' => 'Staff Member',
-                'password' => bcrypt('staff'),
+                'name' => 'Supervisor User',
+                'password' => Hash::make('password'),
+            ]
+        );
+        $supervisor->syncRoles($roleSupervisor);
+
+        // Create Staff User
+        $staff = User::updateOrCreate(
+            ['email' => 'staff@mail.com'],
+            [
+                'name' => 'Staff User',
+                'password' => Hash::make('password'),
             ]
         );
         $staff->syncRoles($roleStaff);
-
-        // Seed some Categories
-        Category::firstOrCreate(['prefix' => 'EL'], ['name' => 'Electronics']);
-        Category::firstOrCreate(['prefix' => 'FS'], ['name' => 'Fashion']);
     }
 }

@@ -29,9 +29,10 @@ class DashboardController extends Controller
         ->pluck('revenue', 'month')
         ->all();
 
-        // Ensure all 12 months are present
+        // Ensure months up to current month are present
         $revenueData = [];
-        for ($m = 1; $m <= 12; $m++) {
+        $currentMonth = date('n');
+        for ($m = 1; $m <= $currentMonth; $m++) {
             $revenueData[] = (float) ($monthlyRevenue[$m] ?? 0);
         }
 
@@ -53,7 +54,7 @@ class DashboardController extends Controller
                 ->all();
 
             $data = [];
-            for ($m = 1; $m <= 12; $m++) {
+            for ($m = 1; $m <= $currentMonth; $m++) {
                 $data[] = (int) ($monthlyItemQty[$m] ?? 0);
             }
 

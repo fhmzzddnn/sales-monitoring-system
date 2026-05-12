@@ -99,10 +99,13 @@
 
                 initRevenueChart() {
                     const ctx = document.getElementById('revenueChart').getContext('2d');
+                    const allLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                    const currentLabels = allLabels.slice(0, this.revenueData.length);
+                    
                     this.revenueChart = new Chart(ctx, {
                         type: 'line',
                         data: {
-                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+                            labels: currentLabels,
                             datasets: [{
                                 label: 'Pendapatan',
                                 data: this.revenueData,
@@ -215,38 +218,6 @@
                     const container = this.$refs.itemChartContainer;
                     const rowHeight = 44; 
                     const calculatedHeight = Math.max(320, visibleCount * rowHeight);
-                    container.style.height = calculatedHeight + 'px';
-                }
-            }
-        }
-    </script>
-
-                getItemChartData() {
-                    let visibleItems = this.itemData
-                        .map(item => ({
-                            ...item,
-                            totalQty: item.data.reduce((a, b) => a + b, 0)
-                        }))
-                        .sort((a, b) => b.totalQty - a.totalQty);
-
-                    return {
-                        labels: visibleItems.map(item => item.name),
-                        datasets: [{
-                            label: 'Total Jumlah Terjual',
-                            data: visibleItems.map(item => item.totalQty),
-                            backgroundColor: visibleItems.map(item => item.color),
-                            borderColor: visibleItems.map(item => item.color),
-                            borderWidth: 1,
-                            borderRadius: 6
-                        }]
-                    };
-                },
-
-                updateItemChartHeight() {
-                    const visibleCount = this.itemData.length;
-                    const container = this.$refs.itemChartContainer;
-                    const rowHeight = 44; 
-                    const calculatedHeight = Math.max(280, visibleCount * rowHeight);
                     container.style.height = calculatedHeight + 'px';
                 }
             }
