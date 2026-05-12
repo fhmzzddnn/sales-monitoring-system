@@ -1,58 +1,117 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Adibayu Test Project
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This project is built with Laravel and uses [Laravel Sail](https://laravel.com/docs/sail) for local development with Docker.
 
-## About Laravel
+## Prerequisites
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) installed and running.
+- (Optional) [Composer](https://getcomposer.org/) installed locally (only if you want to install dependencies without Docker).
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Getting Started
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Follow these steps to set up the project locally using Docker:
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### 1. Clone the repository
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone <repository-url>
+cd AdibayuTest
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Initial Setup
 
-## Contributing
+Copy the example environment file:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+cp .env.example .env
+```
 
-## Code of Conduct
+### 3. Install Dependencies
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+You can install the PHP dependencies using a small Docker container to avoid needing PHP installed locally:
 
-## Security Vulnerabilities
+```bash
+docker run --rm \
+    -u "$(id -u):$(id -g)" \
+    -v "$(pwd):/var/www/html" \
+    -w /var/www/html \
+    laravelsail/php84-composer:latest \
+    composer install --ignore-platform-reqs
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+*(Note: Adjust the image name `php84-composer` if you need a different PHP version, though Sail usually handles this.)*
 
-## License
+### 4. Configure Environment
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Open the `.env` file and ensure the database settings match the Docker configuration in `compose.yaml`:
+
+```env
+DB_CONNECTION=pgsql
+DB_HOST=pgsql
+DB_PORT=5432
+DB_DATABASE=adibayutest
+DB_USERNAME=sail
+DB_PASSWORD=password
+
+REDIS_HOST=redis
+MAIL_MAILER=smtp
+MAIL_HOST=mailpit
+MAIL_PORT=1025
+```
+
+### 5. Start the Application
+
+Start the Docker containers using Laravel Sail:
+
+```bash
+./vendor/bin/sail up -d
+```
+
+### 6. Generate Application Key
+
+```bash
+./vendor/bin/sail artisan key:generate
+```
+
+### 7. Run Migrations and Seeders
+
+```bash
+./vendor/bin/sail artisan migrate --seed
+```
+
+### 8. Frontend Setup
+
+Install NPM dependencies and build the assets:
+
+```bash
+./vendor/bin/sail npm install
+./vendor/bin/sail npm run build
+```
+
+Or run the development server:
+
+```bash
+./vendor/bin/sail npm run dev
+```
+
+## Accessing the Application
+
+- **Web Application:** [http://localhost](http://localhost)
+- **Mailpit (Email Testing):** [http://localhost:8025](http://localhost:8025)
+
+## Common Sail Commands
+
+- Start Sail: `./vendor/bin/sail up -d`
+- Stop Sail: `./vendor/bin/sail stop`
+- Run Artisan commands: `./vendor/bin/sail artisan ...`
+- Run Composer commands: `./vendor/bin/sail composer ...`
+- Run NPM commands: `./vendor/bin/sail npm ...`
+- Run PHPUnit tests: `./vendor/bin/sail test`
+
+## Troubleshooting
+
+If you encounter permission issues, ensure your user has the necessary rights to the project directory or try running:
+
+```bash
+sudo chown -R $USER:$USER .
+```
